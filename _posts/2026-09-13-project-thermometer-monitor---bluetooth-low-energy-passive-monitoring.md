@@ -6,7 +6,16 @@ tags: ["Asynchronous.", "Bluetooth", "Bluetooth Low Energy (BLE)", "Docker", "Gr
 blogger_orig_link: https://lexsysko.blogspot.com/2026/09/project-thermometer-monitor-bluetooth.html
 ---
 
-Thermometer Monitor [is a Python-based asynchronous Bluetooth Low Energy (BLE) environmental monitoring app and telemetry logger](https://github.com/lexsysko/ThermometerMonitor). It continuously listens for BLE advertising packets from smart thermometers, filters out duplicate readings, and saves the data to a local SQLite database.  
+Thermometer Monitor [is a Python-based asynchronous Bluetooth Low Energy (BLE) environmental monitoring app and telemetry logger](https://github.com/lexsysko/ThermometerMonitor). It continuously listens for BLE advertising packets from smart thermometers, filters out duplicate readings, and saves the data to a local SQLite database.
+
+[![](/assets/images/blog/db40240da67d4438-539980bb03f8f10c.jpg)](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjKegd5W35faLwTcHvTKDnEa6n5YK7a4ansymjNTJkbmqJjsn2O9ajSjaB98qdoxxkQ6eKpK_LiKP1JG-0vMdWiv8GXJJehyphenhyphenjXbTPooe3Rg7JvPIcrmZ2U0ubonLLLNXYNcYLFtaiSb2tnMP-0Rzgcvy8zS0iYnnDgOoQksF19zYplvw6t4RXIGTayqp6s/s3351/20260909_193258.jpg)  
+*Thermostat of refrigerator*
+
+### Why
+
+This series of projects ([Thermometer Monitor](/2026-09-13-project-thermometer-monitor---bluetooth-low-energy-passive-monitoring.md), [Sound Monitor](/2026-10-04-project-sound-monitor-for-detect-target-operational-states.md), [Seven Segments Monitor](/2026-10-02-project-seven-segment-monitor.md)) originated from the stated problem of restoring the working condition of a kitchen refrigerator. Need to understand how mechanical tuning of the thermostat range in a refrigerator relates to temperature and the corresponding on and off cycle times of the compressor.
+
+### How
 
 It constantly listens for BLE advertising packets in passive mode from smart thermometers and hygrometers (like the Xiaomi Mijia / LYWSD03MMC running custom ATC or PVVX firmware), decodes the sensor data, removes duplicate readings, and saves everything to a local SQLite database.
 
@@ -82,3 +91,11 @@ An example of Docker logs:
 ```
 
 Repo: <https://github.com/lexsysko/ThermometerMonitor>
+
+### History view
+
+[![](/assets/images/blog/bc884c8b532d6aff-35fab6d3c3967e26.png)](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEij9DucT87f1UnPynuGhp3Q-6fUsODSckFmebal_sOFdn5x159-wL1BY_zAGGd6HQF95oo6-Hm4IS24K4Tyh8ZYeeOMGvagdzP6-oLXtpTIVvfr2VnxeKyfbawGFKjwAjXU2NIi8B2CLL1pii9eiXPv6IABIPZyG-KtvWnkEtOZPMaqwKut_V5HPU6XDXI/s1879/%D0%97%D0%BD%D1%96%D0%BC%D0%BE%D0%BA%20%D0%B5%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-10-04%20174326.png)  
+*2 days*
+
+[![](/assets/images/blog/48e75d072643e193-e66c22103c381f61.png)](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh7lS4MiaICzYvwM1Ug8RqnhxqgPa7WS7migYDs7aBALZhwDFPmEFaDVHGlIfBGholVYXOZySwlt012RxRvo1gs5t_l2fTP3Cxypxf3KPVEGYECH90igZGB9QH3FlAqrfHVHuNzcz4iErreZ2o6ER3IdvCvobbRV6F5KinZ865i9QotS_XB-OS60UMiRUQ/s1875/%D0%97%D0%BD%D1%96%D0%BC%D0%BE%D0%BA%20%D0%B5%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-10-04%20174420.png)  
+*7 days*
