@@ -12,7 +12,7 @@ visual monitoring through a webcam focused on seven-segment indicators.
 
 ### Why
 
-The [previous project](/2026-10-04-project-sound-monitor-for-detect-target-operational-states.md) for detecting the on/off state of the kitchen refrigerator by sound analyses has been stopped. The built-in microphone’s sound quality was so poor and noisy that I decided to abandon it and switch to a more reliable method: visually monitoring the refrigerator’s power consumption by reading the amperage, with 00.0A indicating OFF and 00.7A or 0.08A indicating ON.  
+The [previous project](/2026-10-04-project-sound-monitor-for-detect-target-operational-states.md) for detecting the on/off state of the kitchen refrigerator by sound analyses has been stopped. The built-in microphone’s sound quality was so poor and noisy that I decided to abandon it and switch to a more reliable method: visually monitoring the refrigerator’s power consumption by reading the amperage, with 00.0A indicating OFF and 00.7A or 00.8A indicating ON.  
 
 ### How
 
