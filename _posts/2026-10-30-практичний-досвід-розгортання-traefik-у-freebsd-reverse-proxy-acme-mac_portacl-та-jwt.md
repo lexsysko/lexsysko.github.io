@@ -12,24 +12,32 @@ blogger_orig_link: https://lexsysko.blogspot.com/2026/10/traefik-freebsd-reverse
 
 **Попередня архітектура:**
 
-Для контролю доступу до приватного статичного контенту (зображень) за допомогою JWT-токена в cookies використовувався сервер NGINX із модулем [nginx-auth-jwt](https://github.com/kjdev/nginx-auth-jwt).
+Для контролю доступу до приватного статичного контенту (зображень) за
+допомогою JWT-токена в cookies використовувався сервер NGINX із модулем
+[nginx-auth-jwt](https://github.com/kjdev/nginx-auth-jwt).
 
-Оскільки у стандартних пакетах FreeBSD цей модуль відсутній, збірка виконувалася через кастомний порт [FreeBSD NGINX Port with JWT Authentication Module](https://github.com/lexsysko/port_nginx_add_jwt_auth).
+Оскільки у стандартних пакетах FreeBSD цей модуль відсутній, збірка
+виконувалася через кастомний порт
+[FreeBSD NGINX Port with JWT Authentication Module](https://github.com/lexsysko/port_nginx_add_jwt_auth).
 
 **Недоліки використання рішення на NGINX у FreeBSD :**
 
 * Потребувало постійної ручної компіляції при оновленні системи.
-* Вимагало блокування автоматичного оновлення пакета через `pkg lock nginx`.
+* Вимагало блокування автоматичного оновлення пакета через
+  `pkg lock nginx`.
 
 **Нове рішення на Traefik:**
 
 Traefik виступає як незалежний збалансований проксі-сервер.
 
-Завдяки підтримці плагінів (зокрема [traefik-jwt-plugin](https://github.com/traefik-plugins/traefik-jwt-plugin)), авторизацію та перевірку токенів винесено на рівень проксі, що дозволило повернутися до стандартного бінарного NGINX на бекенді.
+Завдяки підтримці плагінів (зокрема
+[traefik-jwt-plugin](https://github.com/traefik-plugins/traefik-jwt-plugin)), авторизацію та перевірку токенів винесено на рівень проксі, що дозволило
+повернутися до стандартного бінарного NGINX на бекенді.
 
 #### Схема проходження запиту (Request Flow)
 
-Ось як відбувається обробка HTTP/HTTPS-запиту від моменту звернення клієнта до віддачі файлу з NGINX:
+Ось як відбувається обробка HTTP/HTTPS-запиту від моменту звернення клієнта до
+віддачі файлу з NGINX:
 
 [![](/assets/images/blog/0d495366e964f729-2dacd88e0083c8ad.png)](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNHOzTv5mlfrAMUcFW2czSQYrbKzs7CXl2gOjpP92BKHHkHjcjPkkIO3O9kSbzyb4KXNAsgFmewGgN6mrDgwjCsAaIUMk7KHYnz70k25lnBQV8BfYoRRiNa6Hzb2Y3QrqZlvn1KnIMFYSHiS3EfaBcpUmS0wHhfWJ9bxOuYG4LOzwU-HNAmjPRP8ExYos/s1376/traefik_request_flow_diagram.png)  
 *Request Flow*
@@ -37,29 +45,34 @@ Traefik виступає як незалежний збалансований п
 #### Структура та приклад JWT-токена
 
   
-Для аутентифікації використовується токен, збережений у cookies *Auth\_token*.
+Для аутентифікації використовується токен, збережений у cookies
+*Auth\_token*.
 
-Він складається з трьох частин: *Header*, *Payload* та *Signature*.
+Він складається з трьох частин: *Header*, *Payload* та
+*Signature*.
 
 **Структура Payload:**
 
 * `sub` (Subject) — ідентифікатор користувача або сесії.
-* `scope` — область доступу (у нашому випадку вимагається значення `access_token`).
+* `scope` — область доступу (у нашому випадку вимагається
+  значення `access_token`).
 * `dur` (Duration) — тривалість дії токена в секундах.
 * `iat` (Issued At) — час видачі токена (UNIX Timestamp).
-* `exp` (Expiration Time) — час закінчення дії токена (UNIX Timestamp).
+* `exp` (Expiration Time) — час закінчення дії токена (UNIX
+  Timestamp).
 
 Приклад JSON-полів (Decoded JWT):
 
 ```
 // Header
 {
-  "alg": "HS256",
+  "alg": "ES256",
   "typ": "JWT"
 }
 
 // Payload
-{
+{ 
+  "kid": "key-2026-11",
   "sub": "user_78942",
   "scope": "access_token",
   "dur": "3600",
@@ -68,7 +81,7 @@ Traefik виступає як незалежний збалансований п
 }
 ```
 
-**Приклад cookies  (Encoded JWT):**
+**Приклад cookies  (Encoded JWT):** 
 
 ```
 Auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzc4OTQyIiwic2NvcGUiOiJhY2Nlc3NfdG9rZW4iLCJkdXIiOiIzNjAwIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDM2MDB9.SIGNATURE_STRING
@@ -76,7 +89,9 @@ Auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzc4OTQyIiwic2Nv
 
 #### Встановлення з FreeBSD Ports
 
-Спроба встановити Traefik через бінарний менеджер пакетів `pkg` виявила, що доступна версія містила відомі вразливості. Тому встановлення виконувалося з актуального репозиторію портів FreeBSD:
+Спроба встановити Traefik через бінарний менеджер пакетів
+`pkg` виявила, що доступна версія містила відомі вразливості.
+Тому встановлення виконувалося з актуального репозиторію портів FreeBSD:
 
 ```
 # Клонуємо офіційний репозиторій портів FreeBSD
@@ -93,11 +108,15 @@ sysrc traefik_conf="/usr/local/etc/traefik.yml"
 
 #### Підготовка системного середовища та ізоляція
 
-Створюємо робочі каталоги для непривілейованого користувача `traefik`:
+Створюємо робочі каталоги для непривілейованого користувача
+`traefik`:
 
 **Особливість із плагінами:**
 
-Traefik використовує фіксований шлях `/plugins-storage` для збереження плагінів Go. Щоб дотримуватися стандартів файлової системи FreeBSD, створюємо каталог у `/var/lib/` та прив'язуємо його символьним посиланням.
+Traefik використовує фіксований шлях `/plugins-storage` для
+збереження плагінів Go. Щоб дотримуватися стандартів файлової системи
+FreeBSD, створюємо каталог у `/var/lib/` та прив'язуємо його
+символьним посиланням.
 
 ```
 # Конфігураційний каталог
@@ -122,18 +141,24 @@ ln -s /var/lib/plugins-storage /plugins-storage
 
 #### Чотири варіанти відкриття портів 80/443 без root
 
-За замовчуванням у UNIX-системах звичайний користувач не може відкривати порти, менші за 1024. Розглянемо всі можливі підходи до вирішення цієї задачі:
+За замовчуванням у UNIX-системах звичайний користувач не може відкривати
+порти, менші за 1024. Розглянемо всі можливі підходи до вирішення цієї
+задачі:
 
 ### Варіант 1: Запуск від імені root (Не рекомендовано)
 
-Вказати у `/etc/rc.conf` параметр `traefik_user="root"`.  
-*Мінуси:* Порушує концепцію найменших привілеїв. У разі вразливості в проксі компрометується вся операційна система.
+Вказати у `/etc/rc.conf` параметр
+`traefik_user="root"`.  
+*Мінуси:* Порушує концепцію найменших привілеїв. У разі вразливості в
+проксі компрометується вся операційна система.
 
 ### Варіант 2: Перенаправлення через Firewall (PF)
 
-Traefik запускається на високих портах (наприклад, 7080 для HTTP та 7443 для HTTPS), а фаєрвол перенаправляє зовнішні порти 80 та 443.
+Traefik запускається на високих портах (наприклад, 7080 для HTTP та 7443 для
+HTTPS), а фаєрвол перенаправляє зовнішні порти 80 та 443.
 
-Приклад конфігурації `/etc/pf.conf` (де `vtnet0` — зовнішній мережевий інтерфейс):
+Приклад конфігурації `/etc/pf.conf` (де `vtnet0` —
+зовнішній мережевий інтерфейс):
 
 ```
 ext_if = "vtnet0"
@@ -152,7 +177,8 @@ sysrc pf_rules="/etc/pf.conf"
 
 ### Варіант 3: Контейнеризація (Docker / Podman / Jails)
 
-Якщо Traefik розгортається у контейнері, усередині контейнера сервіс слухає високі порти (7080/7443), а контейнерний рушій виконує прокидання на хост:
+Якщо Traefik розгортається у контейнері, усередині контейнера сервіс слухає
+високі порти (7080/7443), а контейнерний рушій виконує прокидання на хост:
 
 ```
 ports:
@@ -162,9 +188,12 @@ ports:
 
 ### Варіант 4: Модуль ядра mac\_portacl (Основне рішення для BareMetal)
 
-Використання підсистеми **MAC (Mandatory Access Control)** у FreeBSD дозволяє надати конкретному користувачу (UID) право відкривати привілейовані порти без підвищення його прав до root.
+Використання підсистеми **MAC (Mandatory Access Control)** у
+FreeBSD дозволяє надати конкретному користувачу (UID) право відкривати
+привілейовані порти без підвищення його прав до root.
 
-1. Визначаємо UID користувача `traefik` (наприклад, `475`):
+1. Визначаємо UID користувача `traefik` (наприклад,
+`475`):
 
 ```
 id traefik
@@ -274,7 +303,13 @@ http:
           JwtSources:
             - type: cookie
               key: "Auth_token"
-          secret: "YOUR_SECRET_KEY_HERE"
+          Keys:
+            - "https://auth.example.com/.well-known/jwks.json"
+            #- |
+            #  -----BEGIN PUBLIC KEY-----
+            #  "YOUR_PEM_SECRET_KEY_HERE"
+            #  -----END PUBLIC KEY-----
+          # secret: "YOUR_SYMETRIC_SECRET_KEY_HERE"
 
     custom-error-pages:
       errors:
@@ -289,7 +324,7 @@ http:
   routers:
     image-proteced--router:
       priority: 100
-      rule: "(Host(`www.example.com`) || Host(`example.com`)) && PathPrefix(`/E/`)"
+      rule: "(Host(`www.example.com`) || Host(`example.com`)) && PathPrefix(`/E/`) && !Method('OPTIONS')"
       service: "nginx-static-service"
       middlewares:
         - custom-error-pages
@@ -315,7 +350,7 @@ error_log  /var/log/nginx/error.log;
 
 log_format proxy_log '$remote_addr - $remote_user [$time_local] '
                      '"$request" $status $body_bytes_sent '
-                     '"$http_referer" "$http_user_agent" '
+                     '"$http_referer" "$http_user_agent" "$http_origin" '
                      'jwt_sub="$http_x_subject"';
 access_log  /var/log/nginx/access.log  proxy_log;
 keepalive_timeout  65;
@@ -348,18 +383,19 @@ http {
 
     error_page 401 403 404 500 /errors/$status;
 
-    location = /errors/401 { default_type text/plain; return 401 "Unauthorized\n"; }
-    location = /errors/403 { default_type text/plain; return 403 "Access Denied\n"; }
-    location = /errors/404 { default_type text/plain; return 404 "Not Found\n"; }
-    location = /errors/500 { default_type text/plain; return 500 "Server Error\n"; }
+    location = /errors/401 { access_log off; default_type text/plain; return 401 "Unauthorized\n"; }
+    location = /errors/403 { access_log off; default_type text/plain; return 403 "Access Denied\n"; }
+    location = /errors/404 { access_log off; default_type text/plain; return 404 "Not Found\n"; }
+    location = /errors/500 { access_log off; default_type text/plain; return 500 "Server Error\n"; }
 
     location ~ /\. {
         deny all;
     }
 
     location /E {
-        alias /usr/local/www/example.com/E;
-        if ($auth_status = "denied") {
+        alias /usr/local/www/example.com/E;  
+        set $check_condition "${request_method}_${auth_status}";  
+        if check_condition = "GET_denied") {  
             return 403;
         }
         auth_basic off;
