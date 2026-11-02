@@ -53,12 +53,13 @@ Traefik виступає як незалежний збалансований п
 
 **Структура Payload:**
 
-* `sub` (Subject) — ідентифікатор користувача або сесії.
-* `scope` — область доступу (у нашому випадку вимагається
+* `kid (Key Id) -`ідентифікатор використаного ключа підпису
+* `sub` (Subject) - ідентифікатор користувача або сесії.
+* `scope` - область доступу (у нашому випадку вимагається
   значення `access_token`).
-* `dur` (Duration) — тривалість дії токена в секундах.
-* `iat` (Issued At) — час видачі токена (UNIX Timestamp).
-* `exp` (Expiration Time) — час закінчення дії токена (UNIX
+* `dur` (Duration) - тривалість дії токена в секундах.
+* `iat` (Issued At) - час видачі токена (UNIX Timestamp).
+* `exp` (Expiration Time) - час закінчення дії токена (UNIX
   Timestamp).
 
 Приклад JSON-полів (Decoded JWT):
@@ -227,8 +228,9 @@ sysctl security.mac.portacl.rules="uid:475:tcp:80,uid:475:tcp:443"
 
 #### Головна конфігурація: /usr/local/etc/traefik.yml
 
-```
 global:
+
+```
   checkNewVersion: false
   sendAnonymousUsage: false
 
@@ -284,9 +286,23 @@ accessLog:
 
 #### Динамічна маршрутизація: /usr/local/etc/traefik/dynamic.yml
 
+Особливості безпеки полягають у тому, що nginx перевіряє заголовок "X-Scope", який повертається лише після перевірки підпису в плагіні "jwt". Оскільки його можна додати прямо в запит, використовується додатковий middleware - "strip-spoofed-headers", який завжди очищає певні чутливі заголовки. А плагін "secure-cookie-jwt-auth" об'єднує middleware "strip-spoofed-headers" та middleware  "cookie-jwt-auth" у певній послідовності.  
+  
+Ключ підпису в плагіні "jwt" може бути у 3-х варіантах:
+
+1. Посилання на файл "jwks" з публічними ключами: *https://auth.example.com/.well-known/jwks.json*
+2. Асиметричний публічний ключ у форматі PEM може бути типів RSA або EC та представлений у вигляді багаторядкового запису.
+3. І "secret" коли у вас симетричний HMAC ключ.
+
 ```
 http:
   middlewares:
+    strip-spoofed-headers:
+      headers:
+        customRequestHeaders:
+          X-Scope: ""
+          X-Subject: ""
+
     cookie-jwt-auth:
       plugin:
         jwt:
@@ -311,6 +327,13 @@ http:
             #  -----END PUBLIC KEY-----
           # secret: "YOUR_SYMETRIC_SECRET_KEY_HERE"
 
+    # Combines two as one
+    secure-cookie-jwt-auth:
+      chain:
+        middlewares:
+          - strip-spoofed-headers
+          - cookie-jwt-auth
+
     custom-error-pages:
       errors:
         status:
@@ -328,12 +351,14 @@ http:
       service: "nginx-static-service"
       middlewares:
         - custom-error-pages
-        - cookie-jwt-auth
+        - secure-cookie-jwt-auth
 
     static-router:
       priority: 10
       rule: "(Host(`www.example.com`) || Host(`example.com`) || Host(`vod.example.com`))"
       service: "nginx-static-service"
+      middlewares:
+        - strip-spoofed-headers
 
   services:
     nginx-static-service:
@@ -383,22 +408,21 @@ http {
 
     error_page 401 403 404 500 /errors/$status;
 
-    location = /errors/401 { access_log off; default_type text/plain; return 401 "Unauthorized\n"; }
+    location = /errors/401 { default_type text/plain; return 401 "Unauthorized\n"; }
     location = /errors/403 { access_log off; default_type text/plain; return 403 "Access Denied\n"; }
-    location = /errors/404 { access_log off; default_type text/plain; return 404 "Not Found\n"; }
-    location = /errors/500 { access_log off; default_type text/plain; return 500 "Server Error\n"; }
+    location = /errors/404 { default_type text/plain; return 404 "Not Found\n"; }
+    location = /errors/500 { default_type text/plain; return 500 "Server Error\n"; }
 
     location ~ /\. {
         deny all;
     }
 
     location /E {
-        alias /usr/local/www/example.com/E;  
-        set $check_condition "${request_method}_${auth_status}";  
-        if check_condition = "GET_denied") {  
-            return 403;
+        alias /usr/local/www/example.com/E;
+        set $check_condition "${request_method}_${auth_status}";
+        if (check_condition = "GET_denied") {
+        	return 403;
         }
-        auth_basic off;
         autoindex off;
         expires 30d;
     }
