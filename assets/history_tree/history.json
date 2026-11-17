@@ -662,5 +662,6 @@
   "https://lexsysko.blogspot.com/2026/10/project-seven-segment-monitor.html": "/2026-10-02-project-seven-segment-monitor.md",
   "https://lexsysko.blogspot.com/2026/10/project-sound-monitor-for-detect-target.html": "/2026-10-04-project-sound-monitor-for-detect-target-operational-states.md",
   "https://lexsysko.blogspot.com/2026/10/traefik-freebsd-reverse-proxy-acme.html": "/2026-10-30-практичний-досвід-розгортання-traefik-у-freebsd-reverse-proxy-acme-mac_portacl-та-jwt.md",
-  "https://lexsysko.blogspot.com/2026/11/lightweight-chainvalidator-class-for.html": "/2026-11-09-lightweight-chainvalidator-class-for-django-validators.md"
+  "https://lexsysko.blogspot.com/2026/11/lightweight-chainvalidator-class-for.html": "/2026-11-09-lightweight-chainvalidator-class-for-django-validators.md",
+  "https://lexsysko.blogspot.com/2026/11/hung-vm-protection-virtual-watchdog-for.html": "/2026-11-17-hung-vm-protection-a-virtual-watchdog-for-proxmox-and-freebsd.md"
 }
